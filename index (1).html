@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ЭкоАудан — Қазақстан экологиялық рейтингі</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🌿</span>
+        <span class="logo-text">ЭкоАудан<span class="logo-kz">KZ</span></span>
+      </div>
+      <nav class="nav">
+        <a href="#search-section">Іздеу</a>
+        <a href="#map-section">Карта</a>
+        <a href="#about">Туралы</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="hero-circle c1"></div>
+      <div class="hero-circle c2"></div>
+      <div class="hero-circle c3"></div>
+    </div>
+    <div class="hero-content">
+      <span class="hero-badge">🤖 ИИ-Ассистент</span>
+      <h1 class="hero-title">Сіздің ауданыңыз<br><em>қаншалықты таза?</em></h1>
+      <p class="hero-sub">Мекенжайыңызды енгізіңіз — ИИ ауданыңыздың экологиялық рейтингін жасайды</p>
+    </div>
+  </section>
+
+  <!-- SEARCH SECTION -->
+  <section class="search-section" id="search-section">
+    <div class="container">
+      <div class="search-card">
+        <h2 class="section-title">📍 Мекенжайды енгізіңіз</h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Қала</label>
+            <select id="city-select">
+              <option value="">— Қалаңызды таңдаңыз —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Аудан</label>
+            <select id="district-select" disabled>
+              <option value="">— Алдымен қаланы таңдаңыз —</option>
+            </select>
+          </div>
+          <div class="form-group street-group">
+            <label>Көше, үй нөмірі (міндетті емес)</label>
+            <input type="text" id="street-input" placeholder="мысалы: Абай к-сі, 15" />
+          </div>
+        </div>
+
+        <button class="analyze-btn" id="analyze-btn" disabled>
+          <span class="btn-icon">🔍</span>
+          <span>Экологиялық талдау жасау</span>
+          <span class="btn-arrow">→</span>
+        </button>
+      </div>
+
+      <!-- РЕЗУЛЬТАТ -->
+      <div class="result-panel" id="result-panel" style="display:none;">
+
+        <div class="result-header">
+          <div class="result-address" id="result-address"></div>
+          <div class="overall-score">
+            <div class="score-ring" id="score-ring">
+              <svg viewBox="0 0 120 120">
+                <circle class="ring-bg" cx="60" cy="60" r="50"/>
+                <circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="50"
+                  stroke-dasharray="314" stroke-dashoffset="314"/>
+              </svg>
+              <div class="score-number" id="score-number">0</div>
+              <div class="score-label">/ 100</div>
+            </div>
+            <div class="score-grade" id="score-grade"></div>
+          </div>
+        </div>
+
+        <!-- КРИТЕРИИ -->
+        <div class="criteria-grid">
+          <div class="criteria-card" data-key="greenZones">
+            <div class="criteria-icon">🌳</div>
+            <div class="criteria-name">Жасыл аймақтар</div>
+            <div class="criteria-bar-wrap">
+              <div class="criteria-bar green" id="bar-green"></div>
+            </div>
+            <div class="criteria-value" id="val-green"></div>
+          </div>
+          <div class="criteria-card" data-key="noise">
+            <div class="criteria-icon">🔊</div>
+            <div class="criteria-name">Шу деңгейі</div>
+            <div class="criteria-bar-wrap">
+              <div class="criteria-bar red" id="bar-noise"></div>
+            </div>
+            <div class="criteria-value" id="val-noise"></div>
+          </div>
+          <div class="criteria-card" data-key="exhaust">
+            <div class="criteria-icon">🚗</div>
+            <div class="criteria-name">Көлік шығарындысы</div>
+            <div class="criteria-bar-wrap">
+              <div class="criteria-bar orange" id="bar-exhaust"></div>
+            </div>
+            <div class="criteria-value" id="val-exhaust"></div>
+          </div>
+          <div class="criteria-card" data-key="factories">
+            <div class="criteria-icon">🏭</div>
+            <div class="criteria-name">Зауыттарға жақындық</div>
+            <div class="criteria-bar-wrap">
+              <div class="criteria-bar red" id="bar-factories"></div>
+            </div>
+            <div class="criteria-value" id="val-factories"></div>
+          </div>
+          <div class="criteria-card" data-key="waste">
+            <div class="criteria-icon">🗑️</div>
+            <div class="criteria-name">Қалдықтар саны</div>
+            <div class="criteria-bar-wrap">
+              <div class="criteria-bar orange" id="bar-waste"></div>
+            </div>
+            <div class="criteria-value" id="val-waste"></div>
+          </div>
+        </div>
+
+        <!-- ИИ АССИСТЕНТ ЧАТЫ -->
+        <div class="ai-chat-section">
+          <div class="ai-header">
+            <div class="ai-avatar">🤖</div>
+            <div>
+              <div class="ai-name">ЭкоИИ Ассистент</div>
+              <div class="ai-status">● Онлайн</div>
+            </div>
+          </div>
+
+          <div class="chat-window" id="chat-window">
+            <div class="chat-bubble ai-bubble" id="ai-intro-msg">
+              Сәлем! Мен сіздің ауданыңыздың экологиялық жағдайын талдадым. Қандай сұрақтарыңыз бар?
+            </div>
+          </div>
+
+          <div class="chat-input-row">
+            <input type="text" id="chat-input" placeholder="Сұрақ қойыңыз... (мысалы: балалар үшін қауіпсіз бе?)" />
+            <button id="chat-send-btn">➤</button>
+          </div>
+
+          <div class="quick-questions">
+            <span class="qq-label">Жылдам сұрақтар:</span>
+            <button class="qq-btn" data-q="Балалар үшін қауіпсіз бе?">👶 Балалар үшін?</button>
+            <button class="qq-btn" data-q="Ауада не бар?">💨 Ауа сапасы?</button>
+            <button class="qq-btn" data-q="Спортпен шұғылдануға болады ма?">🏃 Спорт үшін?</button>
+            <button class="qq-btn" data-q="Ең жақсы уақыт қандай?">⏰ Үздік уақыт?</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- КАРТА БӨЛІМІ -->
+  <section class="map-section" id="map-section">
+    <div class="container">
+      <h2 class="section-title">🗺️ Қазақстан экологиялық картасы</h2>
+      <p class="section-sub">Қалалардың жалпы экологиялық рейтингі</p>
+      <div id="map" class="map-container"></div>
+
+      <div class="map-legend">
+        <div class="legend-item"><span class="dot green-dot"></span> Жақсы (70-100)</div>
+        <div class="legend-item"><span class="dot yellow-dot"></span> Орташа (40-69)</div>
+        <div class="legend-item"><span class="dot red-dot"></span> Нашар (0-39)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about-section" id="about">
+    <div class="container">
+      <h2 class="section-title">Жоба туралы</h2>
+      <div class="about-grid">
+        <div class="about-card">
+          <div class="about-icon">🤖</div>
+          <h3>ИИ Талдауы</h3>
+          <p>Anthropic Claude API арқылы сіздің ауданыңыз туралы нақты, персонализирленген жауап аласыз</p>
+        </div>
+        <div class="about-card">
+          <div class="about-icon">📊</div>
+          <h3>5 Критерий</h3>
+          <p>Жасыл аймақтар, шу, шығарынды, зауыттар және қалдықтар бойынша толық баға</p>
+        </div>
+        <div class="about-card">
+          <div class="about-icon">🗺️</div>
+          <h3>Интерактивті Карта</h3>
+          <p>Қазақстанның барлық қалалары мен аудандары интерактивті картада</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>© 2026 ЭкоАудан KZ — Қазақстан экологиялық рейтинг жүйесі</p>
+    <p class="footer-note">Деректер демонстрациялық мақсатта пайдаланылады</p>
+  </footer>
+
+  <!-- SCRIPTS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <script src="app.js"></script>
+</body>
+</html>
